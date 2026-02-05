@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-container" data-aos="zoom-in">
+    <div class="auth-box">
+        <h2>Welcome Back</h2>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('login')">Sign In</button>
+            <button class="tab-btn" onclick="showTab('signup')">Sign Up</button>
+        </div>
+
+        <div id="login" class="tab-content active">
+            <form action="{{ url_for('auth') }}" method="POST">
+                <input type="hidden" name="action" value="login">
+                <div class="input-group">
+                    <label>Username</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" name="password" required>
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+        </div>
+
+        <div id="signup" class="tab-content">
+            <form action="{{ url_for('auth') }}" method="POST">
+                <input type="hidden" name="action" value="signup">
+                <div class="input-group">
+                    <label>Choose Username</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="input-group">
+                    <label>Choose Password</label>
+                    <input type="password" name="password" required>
+                </div>
+                <button type="submit" class="btn-primary">Create Account</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        event.target.classList.add('active');
+    }
+</script>
+{% endblock %}

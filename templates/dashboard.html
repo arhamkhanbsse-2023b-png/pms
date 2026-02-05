@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-container">
+    <aside class="sidebar-dash">
+        <div class="user-profile">
+            <h3>Hello, {{ user.username }}</h3>
+
+            <div class="loyalty-card">
+                <h4>Loyalty Status</h4>
+                <div class="progress-container">
+                    {% set percent = (user.parking_count / 5) * 100 %}
+                    {% if percent > 100 %}{% set percent = 100 %}{% endif %}
+                    <div class="progress-bar" style="width: {{ percent }}%;"></div>
+                </div>
+                <p>{{ user.parking_count }} / 5 Parks</p>
+                {% if free_wash %}
+                <div class="reward-alert">
+                    <i class="fa-solid fa-star"></i> FREE CAR WASH REDEEMABLE!
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h4>Start Parking</h4>
+            <div class="input-group">
+                <label>Plate Number</label>
+                <input type="text" id="plate" placeholder="ABC-123">
+            </div>
+            <div class="input-group">
+                <label>Model</label>
+                <input type="text" id="model" placeholder="Model">
+            </div>
+
+            <div class="input-group">
+                <label>Filter Area</label>
+                <select id="areaFilter" onchange="fetchData()">
+                    <option value="All">All Areas</option>
+                    <option value="Hayatabad">Hayatabad</option>
+                    <option value="University Road">University Road</option>
+                    <option value="Saddar">Saddar</option>
+                    <option value="Cantt">Cantt</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Select Slot</label>
+                <select id="slotSelect">
+                    <option>Loading...</option>
+                </select>
+            </div>
+            <button onclick="parkCar()" class="btn-primary">Park Now</button>
+            <div id="msg"></div>
+        </div>
+    </aside>
+
+    <main class="grid-area">
+        <h2 class="section-title">Live Parking View</h2>
+        <div id="parkingGrid" class="parking-grid"></div>
+    </main>
+</div>
+
+<!-- SCRIPTS FOR DASHBOARD -->
+<script>
+    async function fetchData() {
+        const area = document.getElementById('areaFilter').value;
+        const res = await fetch(`/api/status?area=${area}`);
+        const data = await res.json();
+        renderGrid(data);
+        updateDropdown(data);
+    }
+
+    function renderGrid(data) {
+        const grid = document.getElementById('parkingGrid');
+        grid.innerHTML = '';
+
+        data.forEach(slot => {
+            const isOccupied = slot.status === 'OCCUPIED';
+            const card = document.createElement('div');
+            card.className = `slot-card ${slot.status.toLowerCase()}`;
+
+            card.innerHTML = `
+            <div class="slot-header">
+                <b>${slot.slot_id}</b>
+                <small>${slot.area}</small>
+            </div>
+             <div class="icon-area">
+                <i class="fa-solid fa-car"></i>
+            </div>
+            <div class="status-badge">${slot.status}</div>
+             ${isOccupied ? `<div class="car-info">${slot.plate}</div>` : ''}
+             
+             <!-- MENU -->
+              <div class="menu-container" style="position:absolute; top:10px; right:10px;">
+                <i class="fa-solid fa-ellipsis-vertical menu-btn" onclick="toggleMenu('${slot.slot_id}', event)"></i>
+                <div class="context-menu" id="menu-${slot.slot_id}">
+                    <button onclick="setStatus('${slot.slot_id}', 'AVAILABLE')">Available</button>
+                    <button onclick="setStatus('${slot.slot_id}', 'RESERVED')">Reserve</button>
+                    <button onclick="setStatus('${slot.slot_id}', 'UNAVAILABLE')">Unavailable</button>
+                </div>
+            </div>
+        `;
+            grid.appendChild(card);
+        });
+    }
+
+    function updateDropdown(data) {
+        const select = document.getElementById('slotSelect');
+        select.innerHTML = '';
+        data.filter(s => s.status === 'AVAILABLE').forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.slot_id;
+            opt.textContent = `${s.slot_id} (${s.area})`;
+            select.appendChild(opt);
+        });
+    }
+
+    async function parkCar() {
+        const plate = document.getElementById('plate').value;
+        const model = document.getElementById('model').value;
+        const slot = document.getElementById('slotSelect').value;
+
+        if (!plate || !slot) return alert('Fill all fields');
+
+        await fetch('/api/park', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plate, model, slot })
+        });
+
+        alert('Parked!');
+        location.reload(); // Reload to update loyalty
+    }
+
+    // Reuse previous menu logic
+    window.toggleMenu = (id, e) => {
+        e.stopPropagation();
+        document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
+        const menu = document.getElementById(`menu-${id}`);
+        menu.style.display = 'flex';
+    };
+    window.onclick = () => document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
+
+    async function setStatus(id, status) {
+        await fetch('/api/update_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slot_id: id, status })
+        });
+        fetchData();
+    }
+
+    fetchData();
+    setInterval(fetchData, 5000);
+</script>
+{% endblock %}

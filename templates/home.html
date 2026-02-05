@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content" data-aos="fade-up">
+        <h1>Welcome to <span class="gold-text">EASY PARK</span></h1>
+        <p>Premium Parking Management in Peshawar. Secure, Fast, and Rewarding.</p>
+        <p class="subtitle">Book slots in Hayatabad, Saddar, and more.</p>
+
+        <div class="cta-group">
+            <a href="{{ url_for('auth') }}" class="btn-hero">Book Now</a>
+            <a href="{{ url_for('about') }}" class="btn-hero-outline">Learn More</a>
+        </div>
+    </div>
+    <div class="hero-image" data-aos="fade-left">
+        <!-- Abstract representation or car vector -->
+        <i class="fa-solid fa-car-tunnel" style="font-size: 15rem; color: var(--gold);"></i>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="feature-card" data-aos="flip-left">
+        <i class="fa-solid fa-shield-halved"></i>
+        <h3>Fully Insured</h3>
+        <p>Your vehicle is covered by SecureSafe Insurance Ltd.</p>
+    </div>
+    <div class="feature-card" data-aos="flip-left" data-aos-delay="100">
+        <i class="fa-solid fa-gift"></i>
+        <h3>Loyalty Rewards</h3>
+        <p>Park 5 times and get a <strong>FREE CAR WASH</strong>.</p>
+    </div>
+    <div class="feature-card" data-aos="flip-left" data-aos-delay="200">
+        <i class="fa-solid fa-location-dot"></i>
+        <h3>Prime Locations</h3>
+        <p>Access spots in Hayatabad, University Road, and Cantt.</p>
+    </div>
+</div>
+{% endblock %}
